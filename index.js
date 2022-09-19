@@ -26,10 +26,57 @@ async function run() {
             res.send(services);
         })
 
+        // =====>>>  {
+
+        // this is not a proper way to query
+        // After larning more about mongodb. use agreeget , lookup , piepline , match , group
+        app.get("/available", async (req, res) => {
+            const date = req.query.date;
+            //step 1 : get all services;
+            const services = await serviceCollection.find().toArray();
+            // step 2 : get the booking of the day
+            const query = { fixedDate: date };
+            // console.log(query);
+            const bookings = await bookingCollection.find(query).toArray();
+            // step 3 : for each service , find booking for thet service
+            services.forEach(service => {
+                const bookedService = bookings.filter(b => b.serviceName === service.name);
+                const bookedServiceSlots = bookedService.map(booked => booked.slotTime);
+                const available= service.slots.filter(book => !bookedServiceSlots.includes(book));
+                service.slots = available;
+
+            })
+            res.send(services);
+        })
+        // app.get("/available", async (req, res) => {
+        //     const date = req.query.date || "Sep 18, 2022";
+        //     const date = req.query.date ;
+        //     //step 1 : get all services;
+        //     const services = await serviceCollection.find().toArray();
+        //     // step 2 : get the booking of the day
+        //     const query = { fixedDate: date };
+        //     // console.log(query);
+        //     const bookings = await bookingCollection.find(query).toArray();            
+        //     // step 3 : for each service , find booking for thet service
+        //     services.forEach(service => {
+        //         const serviceBooking = bookings.filter(booked => booked.serviceName === service.name);
+        //         // console.log(serviceBooking);
+        //         const bookedSlot = serviceBooking.map(s => s.slotTime);
+        //         // console.log(bookedSlot);
+        //         // service.booked = serviceBooking.map(s => s.slots)
+        //         const avialavle = service.slots.filter(s => !bookedSlot.includes(s));
+        //         service.avialavle =  avialavle;
+        //     })
+        //     res.send(services);
+        // })
+
+        //     }<<<=========
+
         app.post("/booking", async (req, res) => {
             const bookingInfo = req.body;
             // console.log(bookingInfo.tritmentId);
             // const query = { tritmentId: bookingInfo.tritmentId }
+            // const query = { serviceName: bookingInfo.serviceName, slotTime: bookingInfo.slotTime, patientName: bookingInfo.patientName }
             const query = { serviceName: bookingInfo.serviceName, fixedDate: bookingInfo.fixedDate, patientName: bookingInfo.patientName }
             const exists = await bookingCollection.findOne(query);
             // console.log(exists);
@@ -43,9 +90,7 @@ async function run() {
 
     }
     finally {
-
     }
-
 }
 run().catch(console.dir)
 
