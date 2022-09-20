@@ -21,6 +21,7 @@ async function run() {
         const bookingCollection = client.db("doctors_portal").collection("booking");
         const userCollection = client.db("doctors_portal").collection("user");
 
+        // main api
         app.get("/service", async (req, res) => {
             const query = {};
             const cursore = serviceCollection.find(query);
@@ -28,7 +29,7 @@ async function run() {
             res.send(services);
         })
 
-        // update or post ba insert করা ,,,
+        // update or post ba insert করা ,,, login or register data set kora hosse
         app.put("/user/:email", async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -38,7 +39,7 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })  // eta payload bola hoy 
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })   // eta payload bola hoy 
             res.send({result, token})
         })
 
@@ -87,6 +88,7 @@ async function run() {
         // })
 
         //     }<<<=========
+        //my appointment api
         app.get("/booking", async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
@@ -94,6 +96,7 @@ async function run() {
             res.send(booking);
         })
 
+        // booking kora hosse Booking Modal theke
         app.post("/booking", async (req, res) => {
             const bookingInfo = req.body;
             // console.log(bookingInfo.tritmentId);
