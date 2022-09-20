@@ -3,6 +3,7 @@ const express = require('express')
 const cors = require('cors');
 const app = express()
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
 // medile ware
@@ -37,7 +38,8 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
-            res.send(result)
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })  // eta payload bola hoy 
+            res.send({result, token})
         })
 
         // =====>>>  {
