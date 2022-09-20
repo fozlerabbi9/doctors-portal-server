@@ -18,12 +18,26 @@ async function run() {
         await client.connect();
         const serviceCollection = client.db("doctors_portal").collection("services");
         const bookingCollection = client.db("doctors_portal").collection("booking");
+        const userCollection = client.db("doctors_portal").collection("user");
 
         app.get("/service", async (req, res) => {
             const query = {};
             const cursore = serviceCollection.find(query);
             const services = await cursore.toArray();
             res.send(services);
+        })
+
+        // update or post ba insert করা ,,,
+        app.put("/user/:email", async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result)
         })
 
         // =====>>>  {
@@ -42,7 +56,7 @@ async function run() {
             services.forEach(service => {
                 const bookedService = bookings.filter(b => b.serviceName === service.name);
                 const bookedServiceSlots = bookedService.map(booked => booked.slotTime);
-                const available= service.slots.filter(book => !bookedServiceSlots.includes(book));
+                const available = service.slots.filter(book => !bookedServiceSlots.includes(book));
                 service.slots = available;
 
             })
@@ -71,6 +85,12 @@ async function run() {
         // })
 
         //     }<<<=========
+        app.get("/booking", async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const booking = await bookingCollection.find(query).toArray();
+            res.send(booking);
+        })
 
         app.post("/booking", async (req, res) => {
             const bookingInfo = req.body;
